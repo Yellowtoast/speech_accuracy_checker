@@ -170,21 +170,32 @@ bool characterIsKorean(String c) {
       (moumBegin <= i && i <= moumEnd));
 }
 
-int levenshtein(String s1, String s2, {bool debug = false}) {
+double levenshtein(String s1, String s2, {bool debug = false}) {
   if (s1.length < s2.length) return levenshtein(s2, s1, debug: debug);
 
-  if (s2.isEmpty) return s1.length;
+  if (s2.isEmpty) return s1.length.toDouble();
 
-  List<int> previousRow =
-      List<int>.generate(s2.length + 1, (int index) => index);
+  List<double> previousRow =
+      List<double>.generate(s2.length + 1, (int index) => index.toDouble());
 
   for (int i = 0; i < s1.length; i++) {
-    List<int> currentRow = [i + 1];
+    int order = i % 3;
+    late double cost;
+
+    if (order == 0) {
+      cost = 1.5;
+    } else if (order == 1) {
+      cost = 1.0;
+    } else {
+      cost = 0.5;
+    }
+
+    List<double> currentRow = [i + cost];
 
     for (int j = 0; j < s2.length; j++) {
-      int insertions = previousRow[j + 1] + 1;
-      int deletions = currentRow[j] + 1;
-      int substitutions = previousRow[j] + (s1[i] != s2[j] ? 1 : 0);
+      double insertions = previousRow[j + 1] + cost;
+      double deletions = currentRow[j] + cost;
+      double substitutions = previousRow[j] + (s1[i] != s2[j] ? cost : 0);
       currentRow.add([insertions, deletions, substitutions]
           .reduce((a, b) => a < b ? a : b));
     }
@@ -353,12 +364,19 @@ String convertSpecialCharsToKorean(
 }
 
 void main() {
-  String s1 = '자가격리자는1층에서체크인합니다';
-  String s2 = '삭가격리여는일층에너샤크인갑니다';
-  // String s2 = '작아경니자는일층애서채크잉함닝당';
+  String s1 = '산토끼토끼야어디를가느냐';
+  // String s2 = '아타멱이아뵹뵹뵹뵹';
+  String s2 = '샨톡끼톡끼야어데를갸는야';
+  // String s2 = '간소끼소끼야거디를나는햐';
 
   s1 = convertTextToKorean(s1);
   s1 = convertSpecialCharsToKorean(s1, [
+    SpecialCharToSpeech(specialChar: '%', speech: '퍼센트'),
+    SpecialCharToSpeech(specialChar: '-', speech: '다시')
+  ]);
+
+  s2 = convertTextToKorean(s2);
+  s2 = convertSpecialCharsToKorean(s2, [
     SpecialCharToSpeech(specialChar: '%', speech: '퍼센트'),
     SpecialCharToSpeech(specialChar: '-', speech: '다시')
   ]);
